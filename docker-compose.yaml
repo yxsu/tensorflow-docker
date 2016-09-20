@@ -8,7 +8,7 @@ services:
     container_name: ps-0
     image: mesos-slave-15:5000/tensorflow-ps-0:0.1
     network_mode: "bridge"
-    mem_limit: 80000m
+#    mem_limit: 80000m
     ports:
       - "8080"
     environment:
@@ -19,7 +19,7 @@ services:
     build: ./tf-worker/
     container_name: ps-1
     image: mesos-slave-15:5000/tensorflow-ps-1:0.1
-    mem_limit: 80000m
+#    mem_limit: 80000m
     network_mode: "bridge"
     ports:
       - "8080"
@@ -57,7 +57,7 @@ services:
     ports:
       - "8080"
     environment:
-      - "constraint:node==mesos-slave-01"
+      - "constraint:node==mesos-master-1"
       - "POD_NAME:worker-0"
 
   worker-1:
@@ -68,7 +68,7 @@ services:
     ports:
       - "8080"
     environment:
-      - "constraint:node==mesos-slave-02"
+      - "constraint:node==mesos-master-2"
       - "POD_NAME:worker-1"
 
   worker-2:
@@ -79,7 +79,7 @@ services:
     ports:
       - "8080"
     environment:
-      - "constraint:node==mesos-slave-03"
+      - "constraint:node==mesos-master-3"
       - "POD_NAME:worker-2"
 
   worker-3:
@@ -364,28 +364,22 @@ services:
     container_name: tf-jupyter-server
     image: mesos-slave-15:5000/tensorflow-jupyter-server:0.1
     network_mode: "bridge"
-#    networks:
-#      - swarm-cluster
     ports:
       - "8888:8888"
       - "80:80"
     volumes:
       - /opt/hdfs/logs/tensorflow-logs:/var/log/tensorflow
+    environment:
+      - "constraint:node==mesos-slave-15"
 ####
   tf-tensorboard-server:
     image: mesos-slave-15:5000/tensorflow
-#    networks:
-#      - swarm-cluster
     network_mode: "bridge"
     container_name: tf-tensorboard-server
     ports:
       - "6006:6006"
-    links:
-      - jupyter-server
-      - master-0
     command: /tensorflow/bazel-bin/tensorflow/tensorboard/tensorboard --logdir=/var/log/tensorflow
     volumes:
       - /opt/hdfs/logs/tensorflow-logs:/var/log/tensorflow
-#networks:
-#  swarm-cluster:
-#    driver: overlay
+    environment:
+       - "constraint:node==mesos-slave-15"
